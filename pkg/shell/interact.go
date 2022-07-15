@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/sys/unix"
 	"src.elv.sh/pkg/cli"
 	"src.elv.sh/pkg/daemon/daemondefs"
 	"src.elv.sh/pkg/diag"
@@ -66,6 +67,24 @@ func interact(ev *eval.Evaler, fds [3]*os.File, cfg *interactCfg) {
 			ev.AddModule("store", store.Ns(cl))
 			ev.AddModule("daemon", daemon.Ns(cl))
 		}
+	}
+
+	id := unix.Getpid()
+	group, _ := unix.Getpgid(id)
+	terminal := int(os.Stdin.Fd())
+
+	if id != group {
+		err := unix.Setpgid(id, id)
+		if err != nil {
+			diag.ShowError(fds[2], err)
+		}
+
+		group = id
+	}
+
+	err := unix.IoctlSetPointerInt(terminal, unix.TIOCSPGRP, group)
+	if err != nil {
+		diag.ShowError(fds[2], err)
 	}
 
 	// Build Editor.
