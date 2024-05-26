@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"src.elv.sh/pkg/buildinfo"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	fmt.Println("flaked2")
 	os.Exit(prog.Run(
 		[3]*os.File{os.Stdin, os.Stdout, os.Stderr}, os.Args,
 		prog.Composite(
