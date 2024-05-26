@@ -23,6 +23,7 @@ import (
 	"io"
 	"math"
 	"unicode"
+	"unicode/utf8"
 
 	"src.elv.sh/pkg/diag"
 )
@@ -866,7 +867,7 @@ func (pn *Primary) bareword(ps *parser) {
 // Windows.
 func allowedInBareword(r rune, ctx ExprCtx) bool {
 	return allowedInVariableName(r) || r == '.' || r == '/' ||
-		r == '\\' || r == '@' || r == '%' || r == '+' || r == '!' ||
+		r == '\\' || r == '@' || r == '%' || r == '+' || r == '!' || r == '#' ||
 		(ctx != LHSExpr && ctx != strictExpr && r == '=') ||
 		(ctx != BracedElemExpr && ctx != strictExpr && r == ',') ||
 		(ctx == CmdExpr && (r == '<' || r == '>' || r == '*' || r == '^'))
@@ -945,6 +946,14 @@ func parseSpacesAndNewlines(n Node, ps *parser) {
 	parseSpacesInner(n, ps, true)
 }
 
+func (ps *parser) prev() rune {
+	if ps.pos == 0 {
+		return -1
+	}
+	r, _ := utf8.DecodeRuneInString(ps.src[ps.pos-1:])
+	return r
+}
+
 func parseSpacesInner(n Node, ps *parser, newlines bool) {
 spaces:
 	for {
@@ -952,19 +961,51 @@ spaces:
 		switch {
 		case IsInlineWhitespace(r):
 			ps.next()
+
+			nr := ps.peek()
+			if nr == '#' {
+				ps.next()
+				for {
+					r := ps.peek()
+					if r == eof || r == '\r' || r == '\n' {
+						break
+					}
+					ps.next()
+				}
+			}
+
 		case newlines && IsWhitespace(r):
 			ps.next()
+
+			nr := ps.peek()
+			if nr == '#' {
+				ps.next()
+				for {
+					r := ps.peek()
+					if r == eof || r == '\r' || r == '\n' {
+						break
+					}
+					ps.next()
+				}
+			}
+
 		case r == '#':
 			// Comment is like inline whitespace as long as we don't include the
 			// trailing newline.
-			ps.next()
-			for {
-				r := ps.peek()
-				if r == eof || r == '\r' || r == '\n' {
-					break
-				}
+			prevr := ps.prev()
+			if prevr == -1 || prevr == '\r' || prevr == '\n' || prevr == ' ' || prevr == '\t' {
 				ps.next()
+				for {
+					r := ps.peek()
+					if r == eof || r == '\r' || r == '\n' {
+						break
+					}
+					ps.next()
+				}
+			} else {
+				break spaces
 			}
+
 		case r == '^':
 			// Line continuation is like inline whitespace.
 			ps.next()
