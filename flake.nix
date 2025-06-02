@@ -2,7 +2,7 @@
   description = "elvish";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     gomod2nix = {
       url = "github:nix-community/gomod2nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +33,7 @@
           elvish = buildGoApplication {
             name = "elvish";
             src = ./.;
-            go = pkgs.go_1_22;
+            go = pkgs.go_1_23;
             pwd = ./.;
             subPackages = [ "cmd/elvish" ];
             CGO_ENABLED = 0;
@@ -55,7 +55,7 @@
       devShell = forAllSystems ({ system, pkgs }:
         pkgs.mkShell {
           buildInputs = with pkgs; [
-            go_1_22
+            go_1_23
             gomod2nix.legacyPackages.${system}.gomod2nix
             gopls
           ];
