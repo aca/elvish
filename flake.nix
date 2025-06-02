@@ -31,6 +31,7 @@
           default = elvish;
 
           elvish = buildGoApplication {
+            nativeBuildInputs = [ pkgs.git ];
             name = "elvish";
             src = ./.;
             go = pkgs.go_1_23;
