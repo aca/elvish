@@ -63,8 +63,9 @@ func quoteAs(s string, q PrimaryType, ctx ExprCtx) (string, PrimaryType) {
 		return "''", SingleQuoted
 	}
 
-	// Keep track of whether it is a valid bareword.
-	bare := s[0] != '~'
+	// Keep track of whether it is a valid bareword. A leading ~ is a tilde
+	// expansion and a leading # starts a comment, so neither can be bare.
+	bare := s[0] != '~' && s[0] != '#'
 	for _, r := range s {
 		if r == unicode.ReplacementChar || !unicode.IsPrint(r) {
 			// Contains invalid UTF-8 sequence or unprintable character; force

@@ -22,6 +22,11 @@ func TestQuote(t *testing.T) {
 		Args("~x").Rets("'~x'"),
 		Args("x~").Rets("x~"),
 
+		// Hash needs quoting only leading the expression, where it would start
+		// a comment.
+		Args("#x").Rets("'#x'"),
+		Args("x#y").Rets("x#y"),
+
 		// Double quote when there is unprintable char.
 		Args("a\nb").Rets(`"a\nb"`),
 		Args("\x1b\"\\").Rets(`"\e\"\\"`),

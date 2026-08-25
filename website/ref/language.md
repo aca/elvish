@@ -29,7 +29,8 @@ In this document, an **inline whitespace** is any of the following:
 
 -   A tab (U+0009);
 
--   A comment: starting with `#` and ending before (but not including) the next
+-   A comment: starting with a `#` that is not part of a
+    [bareword](#bareword) and ending before (but not including) the next
     carriage return, newline or end of file;
 
 -   A line continuation: a `^` followed by a newline (`"\n"`), or a carriage
@@ -193,7 +194,9 @@ the characters from the following set:
 `你好世界`.
 
 Moreover, `~` and `=` are allowed to appear without quoting when they are not
-parsed as [metacharacters](#metacharacters).
+parsed as [metacharacters](#metacharacters), and `#` is allowed without quoting
+anywhere except at the start of a bareword, where it starts a comment instead:
+`a#b` is a single bareword, while `a #b` is `a` followed by a comment.
 
 **Note**: since the backslash (`\`) is a valid bareword character in Elvish, it
 cannot be used to escape metacharacter. Use quotes instead: for example, to echo

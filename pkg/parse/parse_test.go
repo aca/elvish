@@ -545,7 +545,7 @@ var testCases = []struct {
 	// Comment
 	{
 		name: "comments in chunks",
-		code: "a#haha\nb#lala",
+		code: "a #haha\nb #lala",
 		node: &Chunk{},
 		want: ast{
 			"Chunk", fs{"Pipelines": []ast{
@@ -555,13 +555,40 @@ var testCases = []struct {
 	},
 	{
 		name: "comments in lists",
-		code: "a [a#haha\nb]",
+		code: "a [a #haha\nb]",
 		node: &Chunk{},
 		want: a(
 			ast{"Compound/Indexing/Primary", fs{
 				"Type":     List,
 				"Elements": []string{"a", "b"},
 			}},
+		),
+	},
+	{
+		name: "# inside a bareword is part of the bareword",
+		code: "a#b c#d",
+		node: &Chunk{},
+		want: ast{"Chunk/Pipeline/Form", fs{"Head": "a#b", "Args": []string{"c#d"}}},
+	},
+	{
+		name: "# after a pipeline separator starts a comment",
+		code: "a;#b\nc|#d\ne",
+		node: &Chunk{},
+		want: ast{
+			"Chunk", fs{"Pipelines": []ast{
+				{"Pipeline/Form", fs{"Head": "a"}},
+				{"Pipeline", fs{"Forms": []string{"c", "e"}}},
+			}}},
+	},
+	{
+		name: "# after a non-bareword character starts a comment",
+		code: "a (#b\n) [#c\n] { #d\n} $x#e",
+		node: &Chunk{},
+		want: a(
+			ast{"Compound/Indexing/Primary", fs{"Type": OutputCapture, "Chunk": "#b\n"}},
+			ast{"Compound/Indexing/Primary", fs{"Type": List, "Elements": []ast{}}},
+			ast{"Compound/Indexing/Primary", fs{"Type": Lambda, "Chunk": ""}},
+			ast{"Compound/Indexing/Primary", fs{"Type": Variable, "Value": "x"}},
 		),
 	},
 
