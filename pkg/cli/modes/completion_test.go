@@ -33,6 +33,17 @@ func TestCompletion_Accept(t *testing.T) {
 	f.TestTTY(t, "foo", term.DotHere)
 }
 
+func TestCompletion_PasteClosesModeAndInsertsIntoBuffer(t *testing.T) {
+	f := setupStartedCompletion(t)
+	defer f.Stop()
+
+	f.TTY.Inject(term.PasteSetting(true), term.K('x'), term.K('y'), term.PasteSetting(false))
+	f.TestTTY(t, "xy", term.DotHere)
+	if len(f.App.CopyState().Addons) != 0 {
+		t.Errorf("completion addon should be popped after paste")
+	}
+}
+
 func TestCompletion_Dismiss(t *testing.T) {
 	f := setupStartedCompletion(t)
 	defer f.Stop()

@@ -200,7 +200,14 @@ func (w *codeArea) Handle(event term.Event) bool {
 func (w *codeArea) MutateState(f func(*CodeAreaState)) {
 	w.StateMutex.Lock()
 	defer w.StateMutex.Unlock()
+	before := w.State.Buffer
 	f(&w.State)
+	if w.State.Buffer != before {
+		// Any existing autosuggestion was made for the old buffer; refresh it
+		// just like after a keystroke. This covers every non-typing mutation
+		// (pastes, edit:insert-at-dot, buffer builtins, ...).
+		w.updateAutoSuggestion()
+	}
 }
 
 func (w *codeArea) CopyState() CodeAreaState {

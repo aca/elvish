@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"src.elv.sh/pkg/cli"
+	"src.elv.sh/pkg/cli/term"
 	"src.elv.sh/pkg/cli/tk"
 	"src.elv.sh/pkg/diag"
 	"src.elv.sh/pkg/ui"
@@ -35,6 +36,7 @@ type CompletionItem struct {
 
 type completion struct {
 	tk.ComboBox
+	app      cli.App
 	attached tk.CodeArea
 }
 
@@ -74,7 +76,18 @@ func NewCompletion(app cli.App, cfg CompletionSpec) (Completion, error) {
 			w.ListBox().Reset(filterCompletionItems(cfg.Items, cfg.Filter.makePredicate(p)), 0)
 		},
 	})
-	return completion{w, codeArea}, nil
+	return completion{ComboBox: w, app: app, attached: codeArea}, nil
+}
+
+// Handle closes the completion mode when a bracketed paste starts and hands
+// the paste to the attached code area, so pasted text goes into the buffer
+// rather than the completion filter.
+func (w completion) Handle(event term.Event) bool {
+	if start, ok := event.(term.PasteSetting); ok && bool(start) {
+		w.app.PopAddon()
+		return w.attached.Handle(event)
+	}
+	return w.ComboBox.Handle(event)
 }
 
 func (w completion) Dismiss() {

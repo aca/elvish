@@ -22,13 +22,7 @@ func initBufferBuiltins(app cli.App, nb eval.NsBuilder) {
 			if !ok {
 				return
 			}
-			codeArea.MutateState(func(s *tk.CodeAreaState) {
-				fn(&s.Buffer)
-				// Clear autosuggestion when cursor is not at the end
-				if s.Pending.AutoSuggestion && s.Buffer.Dot != len(s.Buffer.Content) {
-					s.Pending = tk.PendingCode{}
-				}
-			})
+			codeArea.MutateState(func(s *tk.CodeAreaState) { fn(&s.Buffer) })
 		}
 	}
 	nb.AddGoFns(m)

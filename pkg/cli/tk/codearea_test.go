@@ -246,6 +246,17 @@ var codeAreaHandleTests = []handleTest{
 		WantNewState: CodeAreaState{Buffer: CodeBuffer{Content: "'\"x'", Dot: 4}},
 	},
 	{
+		Name: "paste clears stale autosuggestion",
+		Given: NewCodeArea(CodeAreaSpec{State: CodeAreaState{
+			Buffer:  CodeBuffer{Content: "ls ", Dot: 3},
+			Pending: PendingCode{From: 3, To: 3, Content: "-al", AutoSuggestion: true}}}),
+		Events: []term.Event{
+			term.PasteSetting(true),
+			term.K('s'), term.K('s'), term.K('h'),
+			term.PasteSetting(false)},
+		WantNewState: CodeAreaState{Buffer: CodeBuffer{Content: "ls ssh", Dot: 6}},
+	},
+	{
 		Name:  "backspace at end of code",
 		Given: NewCodeArea(CodeAreaSpec{}),
 		Events: []term.Event{
@@ -518,4 +529,26 @@ func TestCodeAreaState_ApplyPending(t *testing.T) {
 		Args(CodeAreaState{Buffer: CodeBuffer{"x", 1}, HideRPrompt: true}).
 			Rets(CodeAreaState{Buffer: CodeBuffer{Content: "x", Dot: 1}, HideRPrompt: true}),
 	)
+}
+
+func TestCodeArea_MutateStateRefreshesAutoSuggestion(t *testing.T) {
+	w := NewCodeArea(CodeAreaSpec{State: CodeAreaState{
+		Buffer:  CodeBuffer{Content: "ls ", Dot: 3},
+		Pending: PendingCode{From: 3, To: 3, Content: "-al", AutoSuggestion: true}}})
+
+	// Changing the buffer (as edit:insert-at-dot does) drops the stale
+	// autosuggestion.
+	w.MutateState(func(s *CodeAreaState) { s.Buffer.InsertAtDot("tmp") })
+	if got := w.CopyState(); got.Pending != (PendingCode{}) {
+		t.Errorf("Pending = %v, want empty", got.Pending)
+	}
+
+	// Mutations that leave the buffer alone keep the autosuggestion.
+	w.MutateState(func(s *CodeAreaState) {
+		s.Pending = PendingCode{From: 6, To: 6, Content: "x", AutoSuggestion: true}
+	})
+	w.MutateState(func(s *CodeAreaState) { s.HideTips = true })
+	if got := w.CopyState(); got.Pending.Content != "x" {
+		t.Errorf("Pending = %v, want autosuggestion x kept", got.Pending)
+	}
 }
