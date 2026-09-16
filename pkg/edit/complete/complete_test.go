@@ -417,7 +417,21 @@ func TestComplete(t *testing.T) {
 		allLocalCommandItems := []modes.CompletionItem{
 			fci("./a.exe", " "), fci("./d/", ""), fci("./d2/", ""),
 		}
+		dirCfg := Config{
+			Filterer: FilterPrefix,
+			ArgGenerator: func(args []string) ([]RawItem, error) {
+				return GenerateDirNames(args)
+			},
+		}
 		tt.Test(t, Complete,
+			// Directory name completion treats symlinks to directories as
+			// directories.
+			Args(cb("cd "), ev, dirCfg).Rets(
+				&Result{
+					Name: "argument", Replace: r(3, 3),
+					Items: []modes.CompletionItem{fci("d/", ""), fci("d2/", "")}},
+				nil,
+			),
 			// Filename completion treats symlink to directories as directories.
 			//       01234
 			Args(cb("p > d"), ev, cfg).Rets(

@@ -171,9 +171,18 @@ func generateFileNames(seed string, statPred func(fs.FileInfo) bool) ([]RawItem,
 		if dotfile(fileprefix) != dotfile(name) {
 			continue
 		}
-		// Apply statPred if given.
-		if statPred != nil && !statPred(stat) {
-			continue
+		// Apply statPred if given, following symlinks so that symlinks to
+		// directories are treated as directories.
+		if statPred != nil {
+			predStat := stat
+			if stat.Mode()&os.ModeSymlink != 0 {
+				if resolved, err := os.Stat(dir + name); err == nil {
+					predStat = resolved
+				}
+			}
+			if !statPred(predStat) {
+				continue
+			}
 		}
 
 		// Full filename for source and getStyle.
