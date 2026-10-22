@@ -62,6 +62,8 @@ func NewEditor(tty cli.TTY, ev *eval.Evaler, st storedefs.Store) *Editor {
 	if err != nil {
 		_ = err // TODO(xiaq): Report the error.
 	}
+	// Warm the autosuggestion cache off the startup path.
+	go hs.SuggestCandidates()
 
 	autoSuggestEnabled := newBoolVar(true)
 	var autoSuggestProviderFn eval.Callable

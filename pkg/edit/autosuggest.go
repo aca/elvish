@@ -20,16 +20,11 @@ func defaultHistoryProvider(hs *histStore, code string) string {
 		return ""
 	}
 
-	// Get commands from history that start with the current input
-	// TODO: Optimize this to avoid fetching all commands
-	cmds, err := hs.AllCmds()
-	if err != nil {
-		return ""
-	}
+	cmds := hs.SuggestCandidates()
 
 	// Search backwards through history for the most recent match
 	for i := len(cmds) - 1; i >= 0; i-- {
-		text := cmds[i].Text
+		text := cmds[i]
 		// Match commands that start with current input
 		// Also handle multiline commands - only match against the first line
 		if strings.HasPrefix(text, code) {
