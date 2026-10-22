@@ -85,3 +85,13 @@ func sanitize(in, out *os.File) {
 	unix.SetNonblock(int(in.Fd()), false)
 	unix.SetNonblock(int(out.Fd()), false)
 }
+
+func resetSane(in *os.File) {
+	fd := int(in.Fd())
+	term, err := eunix.TermiosForFd(fd)
+	if err != nil {
+		return
+	}
+	term.SetSane()
+	term.ApplyToFd(fd)
+}

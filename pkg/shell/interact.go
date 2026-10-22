@@ -71,7 +71,8 @@ func interact(ev *eval.Evaler, fds [3]*os.File, cfg *interactCfg) {
 
 	// Build Editor.
 	var ed editor
-	if sys.IsATTY(fds[0].Fd()) {
+	isTTY := sys.IsATTY(fds[0].Fd())
+	if isTTY {
 		restoreTTY := term.SetupForTUIOnce(fds[0], fds[1])
 		defer restoreTTY()
 		newed := edit.NewEditor(cli.NewTTY(fds[0], fds[2]), ev, daemonClient)
@@ -96,6 +97,9 @@ func interact(ev *eval.Evaler, fds [3]*os.File, cfg *interactCfg) {
 	for {
 		cmdNum++
 
+		if isTTY {
+			term.ResetSane(fds[0])
+		}
 		line, err := ed.ReadCode()
 		if err == io.EOF {
 			break

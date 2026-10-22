@@ -59,3 +59,5 @@ func setupForEval(_, out *os.File) func() {
 	}
 	return func() {}
 }
+
+func resetSane(*os.File) {}

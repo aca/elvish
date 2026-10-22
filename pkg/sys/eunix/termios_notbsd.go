@@ -15,3 +15,6 @@ const (
 	setAttrFlushIOCTL = unix.TCSETSF
 	flushIOCTL        = unix.TCFLSH
 )
+
+// _POSIX_VDISABLE
+const vdisable = 0

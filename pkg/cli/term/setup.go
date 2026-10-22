@@ -28,6 +28,13 @@ func SetupForEval(in, out *os.File) func() {
 	return setupForEval(in, out)
 }
 
+// ResetSane resets the terminal to a sane state, like "stty sane", in case a
+// program has left it in a broken state. It does nothing if in is not a
+// terminal or on Windows.
+func ResetSane(in *os.File) {
+	resetSane(in)
+}
+
 const (
 	lackEOLRune    = '\u23ce'
 	lackEOL        = "\033[7m" + string(lackEOLRune) + "\033[m"
