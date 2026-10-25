@@ -33,7 +33,7 @@
           elvish = buildGoApplication {
             name = "elvish";
             src = ./.;
-            go = pkgs.go_1_26;
+            go = pkgs.go_1_27;
             pwd = ./.;
             subPackages = [ "cmd/elvish" ];
             CGO_ENABLED = 0;
@@ -55,7 +55,7 @@
       devShell = forAllSystems ({ system, pkgs }:
         pkgs.mkShell {
           buildInputs = with pkgs; [
-            go_1_26
+            go_1_27
             gomod2nix.legacyPackages.${system}.gomod2nix
             # gopls
           ];
